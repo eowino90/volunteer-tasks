@@ -43,8 +43,21 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 **Dengue cases in Nepal:**
 
 ```{r Dengue_Nepal, fig.width=7, fig.height=3, echo=FALSE}
-site <- "http://www.edcd.gov.np/ewars"
-webpage <- read_html(site) %>% html_nodes("span") %>% html_nodes("a") %>% html_attr("href")
+site <- "https://www.edcd.gov.np/ewars"
+#wrap read_html into try function and suppress error. This ensures that if website fails #to respond on first request, the second  and third request is send
+
+#set webpage to null to help in the loop
+webpage <- NULL
+trial <- 1
+while( is.null(webpage) && trial <= 3 ) {
+  trial <- trial + 1
+  try(
+    webpage <- read_html(site),silent = TRUE
+  )
+}
+
+webpage <- webpage %>% html_nodes("span") %>% html_nodes("a") %>% html_attr("href")
+
 url <- pdf_text(webpage[1])
 date_slipt <- url[1] %>% str_split("\r", simplify = TRUE) %>% str_split("\n", simplify = TRUE)
 date <- trimws(date_slipt [4,2])
