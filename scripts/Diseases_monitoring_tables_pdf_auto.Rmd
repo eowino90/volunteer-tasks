@@ -43,13 +43,17 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 **Dengue cases in Nepal:**
 
 ```{r sourcing data processing scripts, include=FALSE,echo=FALSE}
+#' Change directory below to point to data folder in your computer 
+#' 
+mypath<- "C:/Users/user/Documents/UN volunteer work/data/" #once this is set, please copy it over to Web_scrapping_and_data_cleaning.R script
+
 source("Web_scrapping_and_data_cleaning.R")
 
 ```
 
 
 ```{r Dengue_Nepal, fig.width=7, fig.height=3, echo=FALSE}
-save_data <- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/save_data_nepal_dengue.Rdata")
+save_data <- readRDS(file =paste0(mypath,"save_data_nepal_dengue.Rdata") )
 
 my_data <- save_data
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
@@ -107,7 +111,7 @@ Source: Government of Nepal, Ministry of Health and Population, Department of He
 
 ```{r Dengue_Srilanka, fig.width=7, fig.height=3, echo=FALSE}
 #readRDS data from processing files
-my_data <- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/sri_lanka_dengue.Rdata")
+my_data <- readRDS(file = paste0(mypath,"sri_lanka_dengue.Rdata"))
 
 DT::datatable(
   my_data,
@@ -153,7 +157,8 @@ DT::datatable(
               backgroundColor = styleEqual(levels = c(0,1,2), values = c("#008000","#FFA500","#F00")))
 
 #readRDS ggplot data from web scrapping and data cleaning file
-save_data <- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/sri_lanka_dengue_ggplot.Rdata")
+save_data <- readRDS(file = paste0(mypath,"sri_lanka_dengue_ggplot.Rdata"))
+
 save_data$Month <-factor(save_data$Month, 
                          levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
@@ -176,7 +181,7 @@ Source: Epidemiology Unit of Ministry of Health of Sri Lanka
 
 ```{r Dengue_Fiji, fig.width=7, fig.height=3, echo=FALSE}
 #readRDS processed data from sourced file
-my_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/save_data_fiji_dengue.Rdata")
+my_data<- readRDS(file = paste0(mypath,"save_data_fiji_dengue.Rdata"))
 
 DT::datatable(
   my_data,
@@ -196,7 +201,7 @@ DT::datatable(
               backgroundColor = styleEqual(levels = c(0,1,2), values = c("#008000","#FFA500","#F00")))
 
 #readRDS processed data for ggplot graph
-save_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/save_data_fiji_dengue_ggplot.Rdata")
+save_data<- readRDS(file = paste0(mypath,"save_data_fiji_dengue_ggplot.Rdata"))
 
 
 save_data$Month <-factor(save_data$Month, 
@@ -220,7 +225,7 @@ Source: Pacific Syndromic Surveillance System Weekly Bulletin - WHO
 ```{r Dengue_French_Polynesia, fig.width=7, fig.height=3, echo=FALSE}
 
 #readRDS processed data from sourced file
-my_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/french_polynesia_dengue.Rdata")
+my_data<- readRDS(file = paste0(mypath,"french_polynesia_dengue.Rdata"))
 
 DT::datatable(
   my_data,
@@ -240,7 +245,7 @@ DT::datatable(
               backgroundColor = styleEqual(levels = c(0,1,2), values = c("#008000","#FFA500","#F00")))
 
 #readRDS processed data for ggplot graph
-save_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/french_polynesia_dengue_ggplot.Rdata")
+save_data<- readRDS(file =paste0(mypath,"french_polynesia_dengue_ggplot.Rdata"))
 
 save_data$Month <-factor(save_data$Month, 
                          levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -260,7 +265,7 @@ Source: Pacific Syndromic Surveillance System Weekly Bulletin - WHO
 
 ```{r Dengue_Marshall_Islands, fig.width=7, fig.height=3, echo=FALSE}
 #readRDS processed data from sourced file
-my_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/marshall_dengue.Rdata")
+my_data<- readRDS(file = paste0(mypath,"marshall_dengue.Rdata"))
 
 DT::datatable(
   my_data,
@@ -280,7 +285,8 @@ DT::datatable(
               backgroundColor = styleEqual(levels = c(0,1,2), values = c("#008000","#FFA500","#F00")))
 
 #readRDS processed data for ggplot graph
-save_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/marshall_dengue_ggplot.Rdata")
+save_data<- readRDS(file = paste0(mypath,"marshall_dengue_ggplot.Rdata"))
+
 save_data$Month <-factor(save_data$Month, 
                          levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
@@ -299,7 +305,7 @@ Source: Pacific Syndromic Surveillance System Weekly Bulletin - WHO
 
 ```{r Dengue_Malaysia, fig.width=7, fig.height=3, echo=FALSE}
 #readRDS processed data from sourced file
-my_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/Malaysia_dengue.Rdata")
+my_data<- readRDS(file = paste0(mypath,"Malaysia_dengue.Rdata"))
 
 
 DT::datatable(
@@ -325,7 +331,7 @@ DT::datatable(
               valueColumns = "twente_mean",
               backgroundColor = styleEqual(levels = c(0,1,2), values = c("#008000","#FFA500","#F00")))
 #readRDS processed data for ggplot graph
-save_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/Malaysia_dengue_ggplot.Rdata")
+save_data<- readRDS(file = paste0(mypath,"Malaysia_dengue_ggplot.Rdata"))
 
 save_data$Month <-factor(save_data$Month, 
                          levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -347,7 +353,7 @@ Source: iDengue untuk komuniti - The Government of Malaysia
 ```{r Polio_Afghanistan, fig.width=7, fig.height=3, echo=FALSE}
 
 #readRDS processed data from sourced file
-my_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/afghanistan_polio.Rdata")
+my_data<- readRDS(file = paste0(mypath,"afghanistan_polio.Rdata"))
 
 
 DT::datatable(
@@ -377,7 +383,7 @@ DT::datatable(
               backgroundColor = styleEqual(levels = c(0,1,2), values = c("#008000","#FFA500","#F00")))
 
 #readRDS processed data for ggplot graph
-save_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/afghanistan_polio_ggplot.Rdata")
+save_data<- readRDS(file = paste0(mypath,"afghanistan_polio_ggplot.Rdata"))
 
 save_data$Month <-factor(save_data$Month, 
                          levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -398,7 +404,7 @@ Source: Polio Global Eradication Initiative
 ```{r Polio_Pakistan, fig.width=7, fig.height=3, echo=FALSE}
 
 #readRDS processed data from sourced file
-my_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/pakistan_polio.Rdata")
+my_data<- readRDS(file = paste0(mypath,"pakistan_polio.Rdata"))
 
 DT::datatable(
   my_data,
@@ -427,7 +433,7 @@ DT::datatable(
               backgroundColor = styleEqual(levels = c(0,1,2), values = c("#008000","#FFA500","#F00")))
 
 #readRDS processed data for ggplot graph
-save_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/pakistan_polio_ggplot.Rdata")
+save_data<- readRDS(file = paste0(mypath,"pakistan_polio_ggplot.Rdata"))
 
 save_data$Month <-factor(save_data$Month, 
                          levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -448,7 +454,7 @@ Source: Polio Global Eradication Initiative
 ```{r Measles_Bangladesh, fig.width=7, fig.height=3, echo=FALSE}
 
 #readRDS processed data from sourced file
-my_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/Bangladesh_Measles.Rdata")
+my_data<- readRDS(file = paste0(mypath,"Bangladesh_Measles.Rdata"))
 
 DT::datatable(
   my_data,
@@ -468,7 +474,7 @@ DT::datatable(
               backgroundColor = styleEqual(levels = c(0,1,2), values = c("#008000","#FFA500","#F00")))
 
 #readRDS processed data for ggplot graph
-save_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/Bangladesh_Measles_ggplot.Rdata")
+save_data<- readRDS(file = paste0(mypath,"Bangladesh_Measles_ggplot.Rdata"))
 
 save_data$Month <-factor(save_data$Month, 
                          levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -490,7 +496,7 @@ Source: Epidemiological Highlights - WHO
 ```{r Diarrhea_Bangladesh, fig.width=7, fig.height=3, echo=FALSE}
 
 #readRDS processed data from sourced file
-my_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/Bangladesh_Diarrhea.Rdata")
+my_data<- readRDS(file = paste0(mypath,"Bangladesh_Diarrhea.Rdata"))
 
 
 DT::datatable(
@@ -511,7 +517,7 @@ DT::datatable(
               backgroundColor = styleEqual(levels = c(0,1,2), values = c("#008000","#FFA500","#F00")))
 
 #readRDS processed data for ggplot graph
-save_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/Bangladesh_Diarrhea_ggplot.Rdata")
+save_data<- readRDS(file = paste0(mypath,"Bangladesh_Diarrhea_ggplot.Rdata"))
 
 save_data$Month <-factor(save_data$Month, 
                          levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -537,7 +543,7 @@ Source: Disaster Management Centre for Safer Communities & Sustainable Developme
 
 
 #readRDS processed data from sourced file
-my_data<- readRDS(file = "C:/Users/user/Documents/UN volunteer work/data/save_data_srilanka_drought.Rdata")
+my_data<- readRDS(file = paste0(mypath,"save_data_srilanka_drought.Rdata"))
 
 DT::datatable(
   my_data,

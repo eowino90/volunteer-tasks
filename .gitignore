@@ -1,0 +1,4 @@
+#ignore tracking of excel datasets and pdf reports or instruction documents #
+*.pdf
+*.xlsx
+*.Rdata

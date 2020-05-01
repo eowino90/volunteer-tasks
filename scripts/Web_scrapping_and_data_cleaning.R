@@ -26,7 +26,7 @@ library("ggplot2")
 
 #' Change directory to point to data folder
 #' 
-#setwd("C:/Users/user/Documents/UN volunteer work") 
+mypath<- "C:/Users/user/Documents/UN volunteer work/data/" 
 
 #' ----------------------------------------------------------------------------------------------
 #' scrapping Dengue cases for Nepal
@@ -171,9 +171,9 @@ magnitude_reference <-
 
 total <- ifelse(nepal_cases == "No", 0, word_to_number(nepal_cases))
 
+#'Read in previous dataset to be updated
 
-
-my_data <- read_excel("C:/Users/user/Documents/UN volunteer work/data/Nepal_dengue.xlsx")
+my_data <- read_excel(paste0(mypath,"Nepal_dengue.xlsx"))
 my_data_date <- my_data
 new_cases <- ifelse(date != my_data_date[13,5], total, 0)
 paste("New Cases: ", new_cases)
@@ -198,7 +198,7 @@ my_data[11, '2020'] <- ifelse(date != my_data_date[13,5] & month2 == "November",
 my_data[12, '2020'] <- ifelse(date != my_data_date[13,5] & month2 == "December", my_data$`2020`[12]+total, my_data$`2020`[12]+0)
 
 #save data to be used in rmardown
-saveRDS(my_data, file = "C:/Users/user/Documents/UN volunteer work/data/save_data_nepal_dengue.Rdata")
+saveRDS(my_data, file =paste0(mypath,"save_data_nepal_dengue.Rdata"))
 
 #store date of last update into the dataset
 my_data[13, '2020'] <- date
@@ -221,7 +221,8 @@ Date <- read_html(site) %>% html_nodes("form") %>% html_nodes("div")  %>% html_n
 paste("Last update: ", Date)
 data <- site %>% read_html() %>% html_nodes(xpath='//*[@id="rt-mainbody"]/form/table[2]') %>% html_table()
 
-my_data <- read_excel("C:/Users/user/Documents/UN volunteer work/data/sri_lanka_dengue.xlsx")
+my_data <- read_excel(paste0(mypath,"sri_lanka_dengue.xlsx"))
+
 my_data <- my_data[-c(13:19), ]
 my_data_before <- sum(my_data$`2020`)
 means <- data.frame(ID=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
@@ -242,9 +243,10 @@ my_data[12, '2020'] <- data[[1]]$X2[12]
 
 save_data_srilanka <- as.data.frame(my_data)
 #' Save data to be used in ggplot
-saveRDS(save_data_srilanka, file = "C:/Users/user/Documents/UN volunteer work/data/sri_lanka_dengue_ggplot.Rdata")
+saveRDS(save_data_srilanka, file =paste0(mypath,"sri_lanka_dengue_ggplot.Rdata"))
+
 #write data to excel for the subsequent update when the site updates data
-write.xlsx(save_data_srilanka, "C:/Users/user/Documents/UN volunteer work/data/sri_lanka_dengue.xlsx", sheetName="Sheet1", 
+write.xlsx(save_data_srilanka, paste0(mypath,"sri_lanka_dengue.xlsx"), sheetName="Sheet1", 
            col.names=TRUE, row.names=FALSE, append=FALSE)
 
 my_data_now <- sum(save_data_srilanka$`2020`)
@@ -289,7 +291,7 @@ my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
                               ifelse(my_data$`2020` < means$Below, 0,
                                      1))
 
-saveRDS(my_data, file = "C:/Users/user/Documents/UN volunteer work/data/sri_lanka_dengue.Rdata")
+saveRDS(my_data, file =paste0(mypath,"sri_lanka_dengue.Rdata"))
 
 #' ----------------------------------------------------------------------------------------------
 #' scrapping dengue data from fiji
@@ -321,8 +323,8 @@ final1 <- final %>% filter(
 finalFiji1<- as.character(final1[1,2])
 total<- as.numeric(finalFiji1)
 
-my_data <- read_excel("C:/Users/user/Documents/UN volunteer work/data/Fiji_dengue.xlsx")
- 
+my_data <- read_excel(paste0(mypath,"Fiji_dengue.xlsx"))
+
 my_data_date <- my_data
 new_cases <- ifelse(date != my_data_date[13,4], total, 0)
 paste("New Cases: ", new_cases)
@@ -350,13 +352,13 @@ my_data[12, '2020'] <- ifelse(date != my_data_date[13,4] & month2 == "(Dec", my_
 
 #save externally for use in ggplot later
 save_data <- my_data
-saveRDS(save_data, file = "C:/Users/user/Documents/UN volunteer work/data/save_data_fiji_dengue_ggplot.Rdata")
+saveRDS(save_data, file = paste0(mypath,"save_data_fiji_dengue_ggplot.Rdata"))
 
 my_data[13, '2020'] <- date
 data_date_fiji <- my_data
 
 #write to excel for subsequent update when data is updated by the site
-write.xlsx(data_date_fiji, "C:/Users/user/Documents/UN volunteer work/data/Fiji_dengue.xlsx", sheetName="Sheet1", 
+write.xlsx(data_date_fiji, paste0(mypath,"Fiji_dengue.xlsx"), sheetName="Sheet1", 
            col.names=TRUE, row.names=FALSE, append=FALSE)
 
 my_data <- my_data[-c(13), ]
@@ -373,7 +375,7 @@ my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
                               ifelse(my_data$`2020` < means$Below, 0,
                                      1))
 #save the processed data 
-saveRDS(my_data, file = "C:/Users/user/Documents/UN volunteer work/data/save_data_fiji_dengue.Rdata")
+saveRDS(my_data, file = paste0(mypath,"save_data_fiji_dengue.Rdata"))
 
 
 
@@ -411,8 +413,8 @@ final1 <- final %>% filter(
 finalFP<- as.character(final1[2,2])
 total<- as.numeric(finalFP)
 
-my_data <- read_excel("C:/Users/user/Documents/UN volunteer work/data/French_Polynesya_dengue.xlsx")
- 
+my_data <- read_excel(paste0(mypath,"French_Polynesya_dengue.xlsx"))
+
 my_data_date <- my_data
 new_cases <- ifelse(date != my_data_date[13,4], total, 0)
 paste("New Cases: ", new_cases)
@@ -440,13 +442,13 @@ my_data[12, '2020'] <- ifelse(date != my_data_date[13,4] & month2 == "(Dec", my_
 
 #save data to used for ggplot later
 save_data <- my_data
-saveRDS(save_data, file = "C:/Users/user/Documents/UN volunteer work/data/french_polynesia_dengue_ggplot.Rdata")
+saveRDS(save_data, file = paste0(mypath,"french_polynesia_dengue_ggplot.Rdata"))
 
 my_data[13, '2020'] <- date
 data_date_french_polynesia <- my_data
 #write data to excel for future update when the site updates the data.
 
-write.xlsx(data_date_french_polynesia, "C:/Users/user/Documents/UN volunteer work/data/French_Polynesya_dengue.xlsx", sheetName="Sheet1", 
+write.xlsx(data_date_french_polynesia, paste0(mypath,"French_Polynesya_dengue.xlsx"), sheetName="Sheet1", 
            col.names=TRUE, row.names=FALSE, append=FALSE)
 
 my_data <- my_data[-c(13), ]
@@ -463,7 +465,7 @@ my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
                               ifelse(my_data$`2020` < means$Below, 0,
                                      1))
 #save the processed data
-saveRDS(my_data, file = "C:/Users/user/Documents/UN volunteer work/data/french_polynesia_dengue.Rdata")
+saveRDS(my_data, file = paste0(mypath,"french_polynesia_dengue.Rdata"))
 
 
 #' ----------------------------------------------------------------------------------------------
@@ -498,7 +500,7 @@ final1 <- final %>% filter(
 finalMI<- as.character(final1[3,2])
 total<- as.numeric(finalMI)
 
-my_data <- read_excel("C:/Users/user/Documents/UN volunteer work/data/Marshall_Islands_dengue.xlsx")
+my_data <- read_excel(paste0(mypath,"Marshall_Islands_dengue.xlsx"))
 
 my_data_date <- my_data
 new_cases <- ifelse(date != my_data_date[13,4], total, 0)
@@ -528,12 +530,13 @@ my_data[12, '2020'] <- ifelse(date != my_data_date[13,4] & month2 == "(Dec", my_
 
 #save data to used for ggplot later
 save_data <- my_data
-saveRDS(save_data, file = "C:/Users/user/Documents/UN volunteer work/data/marshall_dengue_ggplot.Rdata")
+saveRDS(save_data, file = paste0(mypath,"marshall_dengue_ggplot.Rdata"))
+
 my_data[13, '2020'] <- date
 data_date_marshall <- my_data
 
 #write data to excel for future update when the site updates the data.
-write.xlsx(data_date_marshall, "C:/Users/user/Documents/UN volunteer work/data/Marshall_Islands_dengue.xlsx", sheetName="Sheet1", 
+write.xlsx(data_date_marshall,paste0(mypath,"Marshall_Islands_dengue.xlsx"), sheetName="Sheet1", 
            col.names=TRUE, row.names=FALSE, append=FALSE)
 
 my_data <- my_data[-c(13), ]
@@ -551,7 +554,8 @@ my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
                                      1))
 
 #save the processed data
-saveRDS(my_data, file = "C:/Users/user/Documents/UN volunteer work/data/marshall_dengue.Rdata")
+saveRDS(my_data, file = paste0(mypath,"marshall_dengue.Rdata"))
+
 
 #' ----------------------------------------------------------------------------------------------
 #' scrapping Dengue cases in Malaysia
@@ -569,7 +573,7 @@ month1 <- strsplit(date, " ")
 month2 <- month1[[1]][2]
 
 
-my_data <- read_excel("C:/Users/user/Documents/UN volunteer work/data/Malaysia_Dengue.xlsx")
+my_data <- read_excel(paste0(mypath,"Malaysia_Dengue.xlsx"))
 
 my_data_date <- my_data
 my_data <- my_data[-c(13), ] 
@@ -605,12 +609,13 @@ my_data[12, '2020'] <- ifelse(date != my_data_date[13,6] & month2 == "Dec", my_d
 
 #save data to used for ggplot later
 save_data <- my_data
-saveRDS(save_data, file = "C:/Users/user/Documents/UN volunteer work/data/Malaysia_dengue_ggplot.Rdata")
+saveRDS(save_data, file =paste0(mypath,"Malaysia_dengue_ggplot.Rdata"))
 
 my_data[13, '2020'] <- date
 data_date_malaysia <- my_data
-write.xlsx(data_date_malaysia, "C:/Users/user/Documents/UN volunteer work/data/Malaysia_Dengue.xlsx", sheetName="Sheet1", 
+write.xlsx(data_date_malaysia,paste0(mypath,"Malaysia_Dengue.xlsx"), sheetName="Sheet1", 
            col.names=TRUE, row.names=FALSE, append=FALSE)
+
 my_data <- my_data[-c(13), ]
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2016" =  "X2016", "2017" =  "X2017", "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
@@ -633,7 +638,8 @@ my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
                                      1))
 
 #save the processed data
-saveRDS(my_data, file = "C:/Users/user/Documents/UN volunteer work/data/Malaysia_dengue.Rdata")
+saveRDS(my_data, file = paste0(mypath,"Malaysia_dengue.Rdata"))
+
 
 #' ----------------------------------------------------------------------------------------------
 #' scrapping Polio cases in Afghanistan
@@ -764,7 +770,7 @@ magnitude_reference <-
 
 total <- ifelse(afghanistan_cases == "No", 0, word_to_number(afghanistan_cases))
 
-my_data <- read_excel("C:/Users/user/Documents/UN volunteer work/data/afghanistan_polio.xlsx")
+my_data <- read_excel(paste0(mypath,"afghanistan_polio.xlsx"))
 
 my_data_date <- my_data
 new_cases <- ifelse(date != my_data_date[13,7], total, 0)
@@ -792,12 +798,14 @@ my_data[11, '2020'] <- ifelse(date != my_data_date[13,7] & month2 == "November",
 my_data[12, '2020'] <- ifelse(date != my_data_date[13,7] & month2 == "December", my_data$`2020`[12]+total, my_data$`2020`[12]+0)
 
 save_data <- my_data
-saveRDS(save_data, file = "C:/Users/user/Documents/UN volunteer work/data/afghanistan_polio_ggplot.Rdata")
+saveRDS(save_data, file =paste0(mypath,"afghanistan_polio_ggplot.Rdata"))
+
 my_data[13, '2020'] <- date
 data_date_afghanistan <- my_data
 
-write.xlsx(data_date_afghanistan, "C:/Users/user/Documents/UN volunteer work/data/afghanistan_polio.xlsx", sheetName="Sheet1", 
+write.xlsx(data_date_afghanistan,paste0(mypath,"afghanistan_polio.xlsx"), sheetName="Sheet1", 
            col.names=TRUE, row.names=FALSE, append=FALSE)
+
 my_data <- my_data[-c(13), ]
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2015" =  "X2015", "2016" =  "X2016", "2017" =  "X2017", "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
@@ -821,7 +829,7 @@ my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
                               ifelse(my_data$`2020` < means$Below, 0,
                                      1))
 #save the processed data
-saveRDS(my_data, file = "C:/Users/user/Documents/UN volunteer work/data/afghanistan_polio.Rdata")
+saveRDS(my_data, file =paste0(mypath,"afghanistan_polio.Rdata"))
 
 #' ----------------------------------------------------------------------------------------------
 #' scrapping Polio cases in Pakistan
@@ -952,7 +960,7 @@ magnitude_reference <-
 
 total <- ifelse(pakistan_cases == "No", 0, word_to_number(pakistan_cases))
 
-my_data <- read_excel("C:/Users/user/Documents/UN volunteer work/data/pakistan_polio.xlsx")
+my_data <- read_excel(paste0(mypath,"pakistan_polio.xlsx"))
 
 my_data_date <- my_data
 new_cases <- ifelse(date != my_data_date[13,7], total, 0)
@@ -980,11 +988,12 @@ my_data[11, '2020'] <- ifelse(date != my_data_date[13,7] & month2 == "November",
 my_data[12, '2020'] <- ifelse(date != my_data_date[13,7] & month2 == "December", my_data$`2020`[12]+total, my_data$`2020`[12]+0)
 
 save_data <- my_data
-saveRDS(save_data, file = "C:/Users/user/Documents/UN volunteer work/data/pakistan_polio_ggplot.Rdata")
+saveRDS(save_data, file = paste0(mypath,"pakistan_polio_ggplot.Rdata"))
+
 my_data[13, '2020'] <- date
 data_date_pakistan <- my_data
 
-write.xlsx(data_date_pakistan, "C:/Users/user/Documents/UN volunteer work/data/pakistan_polio.xlsx", sheetName="Sheet1", 
+write.xlsx(data_date_pakistan,paste0(mypath,"pakistan_polio.xlsx"), sheetName="Sheet1", 
            col.names=TRUE, row.names=FALSE, append=FALSE)
 
 my_data <- my_data[-c(13), ]
@@ -1010,7 +1019,8 @@ my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
                               ifelse(my_data$`2020` < means$Below, 0,
                                      1))
 #save the processed data
-saveRDS(my_data, file = "C:/Users/user/Documents/UN volunteer work/data/pakistan_polio.Rdata")
+saveRDS(my_data, file = paste0(mypath,"pakistan_polio.Rdata"))
+
 #' ----------------------------------------------------------------------------------------------
 #' scrapping Measles cases in Bangladesh
 #' 
@@ -1034,7 +1044,7 @@ data1 <- pdf_text(web)[6]
 data2 <- data2 <- str_extract(data1, "(?i)(?<=Total\\D)\\d+")
 total <- data2 %>% as.numeric()
 
-my_data <- read_excel("C:/Users/user/Documents/UN volunteer work/data/Bangladesh_Measles.xlsx")
+my_data <- read_excel(paste0(mypath,"Bangladesh_Measles.xlsx"))
 
 my_data_date <- my_data
 new_cases <- ifelse(date != my_data_date[13,4], total, 0)
@@ -1063,11 +1073,12 @@ my_data[12, '2020'] <- ifelse(date != my_data_date[13,4] & month2 == "December",
 
 
 save_data <- my_data
-saveRDS(save_data, file = "C:/Users/user/Documents/UN volunteer work/data/Bangladesh_Measles_ggplot.Rdata")
+saveRDS(save_data, file = paste0(mypath,"Bangladesh_Measles_ggplot.Rdata"))
+
 my_data[13, '2020'] <- date
 data_date_bangladesh_measles <- my_data
 
-write.xlsx(data_date_bangladesh_measles, "C:/Users/user/Documents/UN volunteer work/data/Bangladesh_Measles.xlsx", sheetName="Sheet1", 
+write.xlsx(data_date_bangladesh_measles,paste0(mypath,"Bangladesh_Measles.xlsx"), sheetName="Sheet1", 
            col.names=TRUE, row.names=FALSE, append=FALSE)
 
 my_data <- my_data[-c(13), ]
@@ -1085,7 +1096,8 @@ my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
                               ifelse(my_data$`2020` < means$Below, 0,
                                      1))
 #save the processed data
-saveRDS(my_data, file = "C:/Users/user/Documents/UN volunteer work/data/Bangladesh_Measles.Rdata")
+saveRDS(my_data, file = paste0(mypath,"Bangladesh_Measles.Rdata"))
+
 #' ----------------------------------------------------------------------------------------------
 #' scrapping Diarrhea cases in Bangladesh
 #' 
@@ -1109,7 +1121,7 @@ data2 <- str_match(data1, "A total (.*?) cases")
 total <- gsub(" ", "", data2[,2], fixed = TRUE) %>% as.numeric()
 
 
-my_data <- read_excel("C:/Users/user/Documents/UN volunteer work/data/Bangladesh_Diarrhea.xlsx")
+my_data <- read_excel(paste0(mypath,"Bangladesh_Diarrhea.xlsx"))
 
 my_data_date <- my_data
 new_cases <- ifelse(date != my_data_date[13,4], total, 0)
@@ -1138,12 +1150,13 @@ my_data[12, '2020'] <- ifelse(date != my_data_date[13,4] & month2 == "December",
 
 
 save_data <- my_data
-saveRDS(save_data, file = "C:/Users/user/Documents/UN volunteer work/data/Bangladesh_Diarrhea_ggplot.Rdata")
+saveRDS(save_data, file = paste0(mypath,"Bangladesh_Diarrhea_ggplot.Rdata"))
+
 my_data[13, '2020'] <- date
 
 data_date_bangladesh_diarrhea <- my_data
 
-write.xlsx(data_date_bangladesh_diarrhea, "C:/Users/user/Documents/UN volunteer work/data/Bangladesh_Diarrhea.xlsx", sheetName="Sheet1", 
+write.xlsx(data_date_bangladesh_diarrhea,paste0(mypath,"Bangladesh_Diarrhea.xlsx"), sheetName="Sheet1", 
            col.names=TRUE, row.names=FALSE, append=FALSE)
 
 my_data <- my_data[-c(13), ]
@@ -1161,7 +1174,8 @@ my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
                               ifelse(my_data$`2020` < means$Below, 0,
                                      1))
 #save the processed data
-saveRDS(my_data, file = "C:/Users/user/Documents/UN volunteer work/data/Bangladesh_Diarrhea.Rdata")
+saveRDS(my_data, file = paste0(mypath,"Bangladesh_Diarrhea.Rdata"))
+
 #' ----------------------------------------------------------------------------------------------
 #' scrapping Drought Situation Report- Sri Lanka
 #' 
@@ -1175,7 +1189,7 @@ paste("Last update: ", gsub("\\D+\\D+", "\\1",  date[10]))
 
 
 
-my_data <- read_excel("C:/Users/user/Documents/UN volunteer work/data/sri_lanka_drought.xlsx")
+my_data <- read_excel(paste0(mypath,"sri_lanka_drought.xlsx"))
 
 my_data <- as.data.frame(my_data)
 
@@ -1235,12 +1249,12 @@ my_data[16, '2020'] <- 297039
 
 save_data_srilanka_drought <- my_data
 
-write.xlsx(save_data_srilanka_drought, "C:/Users/user/Documents/UN volunteer work/data/sri_lanka_drought.xlsx", sheetName="Sheet1", 
+write.xlsx(save_data_srilanka_drought,paste0(mypath,"sri_lanka_drought.xlsx"), sheetName="Sheet1", 
            col.names=TRUE, row.names=FALSE, append=FALSE)
 
 my_data$twente_mean <- ifelse(my_data$`2020` > 50000, 2,
                               ifelse(my_data$`2020` < 30000, 0,
                                      1))
 #save the processed data
-saveRDS(my_data, file = "C:/Users/user/Documents/UN volunteer work/data/save_data_srilanka_drought.Rdata")
+saveRDS(my_data, file = paste0(mypath,"save_data_srilanka_drought.Rdata"))
 
