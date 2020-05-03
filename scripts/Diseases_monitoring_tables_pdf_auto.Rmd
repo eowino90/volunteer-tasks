@@ -24,6 +24,8 @@ library(tidyverse)
 library(DT)
 library(reshape2)
 library("ggplot2")
+library(webshot)
+
 ```
 
 ```{r global_options, include=FALSE}
@@ -52,7 +54,7 @@ source("Web_scrapping_and_data_cleaning.R")
 ```
 
 
-```{r Dengue_Nepal, fig.width=7, fig.height=3, echo=FALSE}
+```{r Dengue_Nepal, fig.width=7, fig.height=3,dev='png',screenshot.force = TRUE,cache = TRUE,echo=FALSE}
 save_data <- readRDS(file =paste0(mypath,"save_data_nepal_dengue.Rdata") )
 
 my_data <- save_data
@@ -100,7 +102,6 @@ save_data$Month <-factor(save_data$Month,
 meltdf <- melt(save_data,id="Month")
 ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()
 
-
 ```
 
 Source: Government of Nepal, Ministry of Health and Population, Department of Health Services, Epidemiology and Disease Control Division
@@ -109,7 +110,7 @@ Source: Government of Nepal, Ministry of Health and Population, Department of He
 
 **Dengue cases in Sri Lanka:**
 
-```{r Dengue_Srilanka, fig.width=7, fig.height=3, echo=FALSE}
+```{r Dengue_Srilanka, fig.width=7, fig.height=3, dev='png',screenshot.force = TRUE,cache = TRUE, echo=FALSE}
 #readRDS data from processing files
 my_data <- readRDS(file = paste0(mypath,"sri_lanka_dengue.Rdata"))
 
@@ -179,7 +180,7 @@ Source: Epidemiology Unit of Ministry of Health of Sri Lanka
 
 **Dengue cases in Fiji:**
 
-```{r Dengue_Fiji, fig.width=7, fig.height=3, echo=FALSE}
+```{r Dengue_Fiji, fig.width=7, fig.height=3,dev='png',screenshot.force = TRUE,cache = TRUE, echo=FALSE}
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"save_data_fiji_dengue.Rdata"))
 
@@ -222,7 +223,7 @@ Source: Pacific Syndromic Surveillance System Weekly Bulletin - WHO
 
 **Dengue cases in French Polynesia:**
 
-```{r Dengue_French_Polynesia, fig.width=7, fig.height=3, echo=FALSE}
+```{r Dengue_French_Polynesia, fig.width=7, fig.height=3,dev='png',screenshot.force = TRUE,cache = TRUE, echo=FALSE}
 
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"french_polynesia_dengue.Rdata"))
@@ -263,7 +264,7 @@ Source: Pacific Syndromic Surveillance System Weekly Bulletin - WHO
 
 **Dengue cases in Marshall Islands:**
 
-```{r Dengue_Marshall_Islands, fig.width=7, fig.height=3, echo=FALSE}
+```{r Dengue_Marshall_Islands, fig.width=7,fig.height=3,dev='png',screenshot.force = TRUE,cache = TRUE,echo=FALSE}
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"marshall_dengue.Rdata"))
 
@@ -303,7 +304,7 @@ Source: Pacific Syndromic Surveillance System Weekly Bulletin - WHO
 
 **Dengue cases in Malaysia:**
 
-```{r Dengue_Malaysia, fig.width=7, fig.height=3, echo=FALSE}
+```{r Dengue_Malaysia, fig.width=7, fig.height=3,dev='png',screenshot.force = TRUE,cache = TRUE, echo=FALSE}
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"Malaysia_dengue.Rdata"))
 
@@ -350,7 +351,7 @@ Source: iDengue untuk komuniti - The Government of Malaysia
 
 **Polio cases in Afghanistan**
 
-```{r Polio_Afghanistan, fig.width=7, fig.height=3, echo=FALSE}
+```{r Polio_Afghanistan, fig.width=7, fig.height=3,dev='png',screenshot.force = TRUE,cache = TRUE, echo=FALSE}
 
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"afghanistan_polio.Rdata"))
@@ -401,7 +402,7 @@ Source: Polio Global Eradication Initiative
 
 **Polio cases in Pakistan**
 
-```{r Polio_Pakistan, fig.width=7, fig.height=3, echo=FALSE}
+```{r Polio_Pakistan, fig.width=7, fig.height=3,dev='png',screenshot.force = TRUE,cache = TRUE, echo=FALSE}
 
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"pakistan_polio.Rdata"))
@@ -451,7 +452,7 @@ Source: Polio Global Eradication Initiative
 
 **Measles cases in Bangladesh**
 
-```{r Measles_Bangladesh, fig.width=7, fig.height=3, echo=FALSE}
+```{r Measles_Bangladesh, fig.width=7, fig.height=3,dev='png',screenshot.force = TRUE,cache = TRUE, echo=FALSE}
 
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"Bangladesh_Measles.Rdata"))
@@ -493,7 +494,7 @@ Source: Epidemiological Highlights - WHO
 
 **Diarrhea cases in Bangladesh**
 
-```{r Diarrhea_Bangladesh, fig.width=7, fig.height=3, echo=FALSE}
+```{r Diarrhea_Bangladesh, fig.width=7, fig.height=3,dev='png',screenshot.force = TRUE,cache = TRUE, echo=FALSE}
 
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"Bangladesh_Diarrhea.Rdata"))
@@ -539,7 +540,7 @@ Source: Epidemiological Highlights - WHO
 
 Source: Disaster Management Centre for Safer Communities & Sustainable Development in Sri Lanka
 
-```{r Drought_SriLanka, fig.width=7, fig.height=3,  echo=FALSE}
+```{r Drought_SriLanka, fig.width=7, fig.height=3,dev='png',screenshot.force = TRUE,cache = TRUE,  echo=FALSE}
 
 
 #readRDS processed data from sourced file
