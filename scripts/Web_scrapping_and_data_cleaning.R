@@ -1,5 +1,5 @@
 # -------------------------------------------------- 
-# Script Name : Web scrapping and data cleaning.R
+# Script Name : Web_scrapping_and data_cleaning.R
 # Purpose: Scrapping of websites for data;then clean and output csv files
 # Potential bugs on this script:
 #    1. If the source websites makes changes on html layout, then script will fail											
@@ -14,7 +14,8 @@ library(dplyr)
 library(miniUI)
 library(tidyverse)
 library(pdftools)
-
+#install rlist if it is missing then load it
+if(!require(rlist)) install.packages("rlist"); library(rlist)
 library(xlsx)
 library(condformat)
 library("readxl")
@@ -53,121 +54,14 @@ webpage <- webpage %>% html_nodes("span") %>% html_nodes("a") %>% html_attr("hre
 url <- pdf_text(webpage[1])
 date_slipt <- url[1] %>% str_split("\r", simplify = TRUE) %>% str_split("\n", simplify = TRUE)
 date <- trimws(date_slipt [4,2])
-paste("Last update: ", date)
+save_lastupdate<-paste("Last update: ", date)
 month1 <- strsplit(date, " ")
-month2 <- month1[[1]][2]
+month2 <- gsub('[0-9]+', '', month1[[1]][1])
 data_slipt <- url[4] %>% str_split("\r", simplify = TRUE) %>% grep('Dengue|dengue', ., value = T) 
 data <- gsub("[\n]", "", data_slipt)
 nepal_cases <- gsub( " .*$", "", data[2] )
-word_to_number <- function(x){
-  # Remove punctuation and 'and'
-  x <- tolower(gsub("([[:punct:]]| and )", " ", x))
-  # separate into distinct words
-  x <- trimws(unlist(strsplit(x, "\\s+")))
-  
-  # verify that all words are found in the reference vectors.
-  if (!(all(x %in% names(c(word_to_number_reference, magnitude_reference)))))
-    stop("Text found that is not compatible with conversion. Check your spelling?")
-  
-  # translate words to the numeric reference
-  num <- c(word_to_number_reference, magnitude_reference)[x]
-  
-  # Identify positions with a magnitude indicator
-  magnitude_at <- 
-    which(names(num) %in% 
-            c("quadrillion", "trillion", "billion",
-              "million", "thousand"))
-  
-  # Create an indexing vector for each magnitude class of the number
-  magnitude_index <- 
-    cut(seq_along(num), 
-        breaks = unique(c(0, magnitude_at, length(num))))
-  
-  # Make a list with each magnitude
-  num_component <- 
-    lapply(unique(magnitude_index),
-           FUN = function(i) num[magnitude_index == i])
-  
-  # Transate each component
-  num_component <- 
-    vapply(num_component,
-           FUN = word_to_number_translate_hundred,
-           FUN.VALUE = numeric(1))
-  
-  # Add the components together
-  num <- sum(num_component)
-  
-  if (is.na(num))
-    warning(sprintf("Unable to translate %s", x))
-  
-  num
-}
 
-word_to_number_translate_hundred <- function(n){
-  # set a magnitude multiplier for thousands and greater
-  if (tail(names(n), 1) %in% names(magnitude_reference)){
-    magnitude <- tail(n, 1)
-    n <- head(n, -1)
-  } else {
-    magnitude <- 1
-  }
-  
-  # if hundred appears anywhere but the second position or of the
-  # value preceding hundred is greater than 9, handle with care
-  # (for instance, 1200)
-  if ( ("hundred" %in% names(n) && which(names(n) == "hundred") != 2) ||
-       ("hundred" %in% names(n) && n[1] > 1) )
-  {
-    which_hundred <- which(names(n) == "hundred")
-    (sum(n[seq_along(n) < which_hundred]) * 100 + 
-        sum(n[seq_along(n) > which_hundred])) * magnitude
-  } else {
-    op <- rep("+", length(n) - 1)
-    op[names(n)[-1] == "hundred"] <- "*"
-    op <- c(op, "")
-    eval(parse(text = paste(paste(n, op), collapse = " "))) * magnitude
-  }
-}
-
-
-
-word_to_number_reference <- 
-  c("zero" = 0,
-    "one" = 1,
-    "two" = 2,
-    "three" = 3,
-    "four" = 4,
-    "five" = 5,
-    "six" = 6,
-    "seven" = 7,
-    "eight" = 8,
-    "nine" = 9,
-    "ten" = 10,
-    "eleven" = 11,
-    "twelve" = 12,
-    "thirteen" = 13,
-    "fourteen" = 14,
-    "fifteen" = 15,
-    "sixteen" = 16,
-    "seventeen" = 17,
-    "eighteen" = 18,
-    "nineteen" = 19,
-    "twenty" = 20,
-    "thirty" = 30,
-    "forty" = 40,
-    "fifty" = 50,
-    "sixty" = 60,
-    "seventy" = 70,
-    "eighty" = 80,
-    "ninety" = 90,
-    "hundred" = 100)
-
-magnitude_reference <- 
-  c("thousand" = 1000,
-    "million" =  1e6,
-    "billion" =  1e9,
-    "trillion" = 1e12,
-    "quadrillion" = 1e15)
+#word_to_number function is defined in dependancies script
 
 total <- ifelse(nepal_cases == "No", 0, word_to_number(nepal_cases))
 
@@ -176,12 +70,15 @@ total <- ifelse(nepal_cases == "No", 0, word_to_number(nepal_cases))
 my_data <- read_excel(paste0(mypath,"Nepal_dengue.xlsx"))
 my_data_date <- my_data
 new_cases <- ifelse(date != my_data_date[13,5], total, 0)
-paste("New Cases: ", new_cases)
+save_new_case<-paste("New Cases: ", new_cases)
 my_data <- my_data[-c(13), ] 
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename("2017" =  "X2017", "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
 
 means <- data.frame(ID=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
+
+means$ID <- as.character(means$ID)
+
 means <- means %>% mutate(Above = means$Means*1.25, Below = means$Means*0.75)
 
 my_data[1, '2020'] <- ifelse(date != my_data_date[13,5] & month2 == "January", my_data$`2020`[1]+total, my_data$`2020`[1]+0)
@@ -197,9 +94,6 @@ my_data[10, '2020'] <- ifelse(date != my_data_date[13,5] & month2 == "October", 
 my_data[11, '2020'] <- ifelse(date != my_data_date[13,5] & month2 == "November", my_data$`2020`[11]+total, my_data$`2020`[11]+0)
 my_data[12, '2020'] <- ifelse(date != my_data_date[13,5] & month2 == "December", my_data$`2020`[12]+total, my_data$`2020`[12]+0)
 
-#save data to be used in rmardown
-saveRDS(my_data, file =paste0(mypath,"save_data_nepal_dengue.Rdata"))
-
 #store date of last update into the dataset
 my_data[13, '2020'] <- date
 data_date_nepal <- my_data
@@ -207,7 +101,32 @@ data_date_nepal <- my_data
 write.xlsx(data_date_nepal, "C:/Users/user/Documents/UN volunteer work/data/Nepal_dengue.xlsx", sheetName="Sheet1", 
            col.names=TRUE, row.names=FALSE, append=FALSE)
 
+my_data <- my_data[-c(13), ]
+my_data <- transform(my_data, `2020` = as.numeric(`2020`))
+my_data <- my_data %>% rename("2017" =  "X2017", "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
 
+#merge the means and my_data based on month
+
+my_data<- inner_join(my_data,means,by=c("Month"="ID"))
+
+my_data$seventen_mean <- ifelse(my_data$`2017` >my_data$Above, 2,
+                                ifelse(my_data$`2017` < my_data$Below, 0,
+                                       1))
+my_data$eigthten_mean <- ifelse(my_data$`2018` > my_data$Above, 2,
+                                ifelse(my_data$`2018` < my_data$Below, 0,
+                                       1))
+my_data$nineten_mean <- ifelse(my_data$`2019` > my_data$Above, 2,
+                               ifelse(my_data$`2019` < my_data$Below, 0,
+                                      1))
+my_data$twente_mean <- ifelse(my_data$`2020` > my_data$Above, 2,
+                              ifelse(my_data$`2020` < my_data$Below, 0,
+                                     1))
+my_data<- dplyr::select(my_data,-c(Means,Above,Below))
+#save lastupdate and new cases as last rows. This will be extracted and used in rmardown
+my_data[13,1]<-save_lastupdate
+my_data[14,1]<-save_new_case
+#save data to be used in rmardown
+saveRDS(my_data, file =paste0(mypath,"save_data_nepal_dengue.Rdata"))
 #' ----------------------------------------------------------------------------------------------
 #' scrapping Dengue cases for Sirlanka
 #' 
@@ -218,7 +137,7 @@ write.xlsx(data_date_nepal, "C:/Users/user/Documents/UN volunteer work/data/Nepa
 
 site <- "http://www.epid.gov.lk/web/index.php?option=com_casesanddeaths&Itemid=448&lang=en"
 Date <- read_html(site) %>% html_nodes("form") %>% html_nodes("div")  %>% html_nodes("span")  %>% html_text() %>% grep('Date', ., value = T)
-paste("Last update: ", Date)
+save_lastupdate<-paste("Last update: ", Date)
 data <- site %>% read_html() %>% html_nodes(xpath='//*[@id="rt-mainbody"]/form/table[2]') %>% html_table()
 
 my_data <- read_excel(paste0(mypath,"sri_lanka_dengue.xlsx"))
@@ -226,6 +145,9 @@ my_data <- read_excel(paste0(mypath,"sri_lanka_dengue.xlsx"))
 my_data <- my_data[-c(13:19), ]
 my_data_before <- sum(my_data$`2020`)
 means <- data.frame(ID=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
+
+means$Month <- as.character(means$Month)
+
 means <- means %>% mutate(Above = means$Means*1.25, Below = means$Means*0.75)
 
 my_data[1, '2020'] <- data[[1]]$X2[1]
@@ -251,46 +173,52 @@ write.xlsx(save_data_srilanka, paste0(mypath,"sri_lanka_dengue.xlsx"), sheetName
 
 my_data_now <- sum(save_data_srilanka$`2020`)
 new_cases <- my_data_now - my_data_before
-paste("New Cases: ", new_cases)
+save_new_case<-paste("New Cases: ", new_cases)
 
+#merge means
 
-my_data$ten_mean <- ifelse(my_data$`2010` > means$Above, 2,
-                           ifelse(my_data$`2010` < means$Below, 0,
+my_data<- inner_join(my_data,means,by=c("Month"))
+
+my_data$ten_mean <- ifelse(my_data$`2010` > my_data$Above, 2,
+                           ifelse(my_data$`2010` < my_data$Below, 0,
                                   1))
 
-my_data$eleven_mean <- ifelse(my_data$`2011` > means$Above, 2,
-                              ifelse(my_data$`2011` < means$Below, 0,
+my_data$eleven_mean <- ifelse(my_data$`2011` > my_data$Above, 2,
+                              ifelse(my_data$`2011` < my_data$Below, 0,
                                      1))
 
-my_data$twelve_mean <- ifelse(my_data$`2012` > means$Above, 2,
-                              ifelse(my_data$`2012` < means$Below, 0,
+my_data$twelve_mean <- ifelse(my_data$`2012` > my_data$Above, 2,
+                              ifelse(my_data$`2012` < my_data$Below, 0,
                                      1))
 
-my_data$thirdten_mean <- ifelse(my_data$`2013` > means$Above, 2,
-                                ifelse(my_data$`2013` < means$Below, 0,
+my_data$thirdten_mean <- ifelse(my_data$`2013` > my_data$Above, 2,
+                                ifelse(my_data$`2013` < my_data$Below, 0,
                                        1))
-my_data$fourthten_mean <- ifelse(my_data$`2014` > means$Above, 2,
-                                 ifelse(my_data$`2014` < means$Below, 0,
+my_data$fourthten_mean <- ifelse(my_data$`2014` > my_data$Above, 2,
+                                 ifelse(my_data$`2014` < my_data$Below, 0,
                                         1))
-my_data$fiveten_mean <- ifelse(my_data$`2015` > means$Above, 2,
-                               ifelse(my_data$`2015` < means$Below, 0,
+my_data$fiveten_mean <- ifelse(my_data$`2015` > my_data$Above, 2,
+                               ifelse(my_data$`2015` < my_data$Below, 0,
                                       1))
-my_data$sixten_mean <- ifelse(my_data$`2016` > means$Above, 2,
-                              ifelse(my_data$`2016` < means$Below, 0,
+my_data$sixten_mean <- ifelse(my_data$`2016` > my_data$Above, 2,
+                              ifelse(my_data$`2016` < my_data$Below, 0,
                                      1))
-my_data$seventen_mean <- ifelse(my_data$`2017` > means$Above, 2,
-                                ifelse(my_data$`2017` < means$Below, 0,
+my_data$seventen_mean <- ifelse(my_data$`2017` > my_data$Above, 2,
+                                ifelse(my_data$`2017` < my_data$Below, 0,
                                        1))
 my_data$eigthten_mean <- ifelse(my_data$`2018` > means$Above, 2,
                                 ifelse(my_data$`2018` < means$Below, 0,
                                        1))
-my_data$nineten_mean <- ifelse(my_data$`2019` > means$Above, 2,
-                               ifelse(my_data$`2019` < means$Below, 0,
+my_data$nineten_mean <- ifelse(my_data$`2019` > my_data$Above, 2,
+                               ifelse(my_data$`2019` < my_data$Below, 0,
                                       1))
 my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
                               ifelse(my_data$`2020` < means$Below, 0,
                                      1))
-
+my_data<- dplyr::select(my_data,-c(Means,Above,Below))
+#save new cases and last update date as last two rows. This will be used in rmarkdown
+my_data[13,1]<-save_lastupdate
+my_data[14,1]<-save_new_case
 saveRDS(my_data, file =paste0(mypath,"sri_lanka_dengue.Rdata"))
 
 #' ----------------------------------------------------------------------------------------------
@@ -304,7 +232,7 @@ web <- read_html(webpage[1]) %>% html_nodes("ul") %>% html_nodes("li") %>%  html
 date1 <- pdf_text(web[11])[1]
 date_slipt <- date1 %>% str_split("\r\n", simplify = TRUE) 
 date <- trimws(date_slipt[,5])
-paste("Last update: ", date)
+save_lastupdate<-paste("Last update: ", date)
 month1 <- strsplit(date, " ")
 month2 <- month1[[1]][3]
 df_results <- extract_tables(web[11], pages = 3)
@@ -327,13 +255,15 @@ my_data <- read_excel(paste0(mypath,"Fiji_dengue.xlsx"))
 
 my_data_date <- my_data
 new_cases <- ifelse(date != my_data_date[13,4], total, 0)
-paste("New Cases: ", new_cases)
+save_new_case<-paste("New Cases: ", new_cases)
 my_data <- my_data[-c(13), ] 
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
 
-means <- data.frame(ID=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
+means <- data.frame(Month=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
 means <- means %>% mutate(Above = means$Means*1.25, Below = means$Means*0.75)
+#convert month to characters from factor
+means$Month <- as.character(means$Month)
 my_data <- as.data.frame(my_data)
 
 
@@ -364,17 +294,23 @@ write.xlsx(data_date_fiji, paste0(mypath,"Fiji_dengue.xlsx"), sheetName="Sheet1"
 my_data <- my_data[-c(13), ]
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
+#merge my_data together with means
+my_data<- inner_join(my_data,means, by="Month")
 
-my_data$eigthten_mean <- ifelse(my_data$`2018` > means$Above, 2,
-                                ifelse(my_data$`2018` < means$Below, 0,
+my_data$eigthten_mean <- ifelse(my_data$`2018` > my_data$Above, 2,
+                                ifelse(my_data$`2018` < my_data$Below, 0,
                                        1))
-my_data$nineten_mean <- ifelse(my_data$`2019` > means$Above, 2,
-                               ifelse(my_data$`2019` < means$Below, 0,
+my_data$nineten_mean <- ifelse(my_data$`2019` > my_data$Above, 2,
+                               ifelse(my_data$`2019` < my_data$Below, 0,
                                       1))
-my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
-                              ifelse(my_data$`2020` < means$Below, 0,
+my_data$twente_mean <- ifelse(my_data$`2020` > my_data$Above, 2,
+                              ifelse(my_data$`2020` < my_data$Below, 0,
                                      1))
 #save the processed data 
+my_data<- dplyr::select(my_data,-c(Means,Above,Below))
+#save last update date and new cases as last two rows. This will be used in rmarkdown
+my_data[13,1]<-save_lastupdate
+my_data[14,1]<-save_new_case
 saveRDS(my_data, file = paste0(mypath,"save_data_fiji_dengue.Rdata"))
 
 
@@ -394,7 +330,7 @@ web <- read_html(webpage[1]) %>% html_nodes("ul") %>% html_nodes("li") %>%  html
 date1 <- pdf_text(web[11])[1]
 date_slipt <- date1 %>% str_split("\r\n", simplify = TRUE) 
 date <- trimws(date_slipt[,5])
-paste("Last update: ", date)
+save_lastupdate<-paste("Last update: ", date)
 month1 <- strsplit(date, " ")
 month2 <- month1[[1]][3]
 df_results <- extract_tables(web[11], pages = 3)
@@ -417,12 +353,14 @@ my_data <- read_excel(paste0(mypath,"French_Polynesya_dengue.xlsx"))
 
 my_data_date <- my_data
 new_cases <- ifelse(date != my_data_date[13,4], total, 0)
-paste("New Cases: ", new_cases)
+save_new_case<-paste("New Cases: ", new_cases)
 my_data <- my_data[-c(13), ] 
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
 
-means <- data.frame(ID=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
+means <- data.frame(Month=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
+#convert month to characters from factor
+means$Month <- as.character(means$Month)
 means <- means %>% mutate(Above = means$Means*1.25, Below = means$Means*0.75)
 my_data <- as.data.frame(my_data)
 
@@ -455,6 +393,9 @@ my_data <- my_data[-c(13), ]
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
 
+#merge my_data with means datset
+my_data <- inner_join(my_data,means, by="Month")
+
 my_data$eigthten_mean <- ifelse(my_data$`2018` > means$Above, 2,
                                 ifelse(my_data$`2018` < means$Below, 0,
                                        1))
@@ -465,6 +406,11 @@ my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
                               ifelse(my_data$`2020` < means$Below, 0,
                                      1))
 #save the processed data
+my_data<- dplyr::select(my_data,-c(Means,Above,Below))
+#last update date and new cases number into the last two rows. This will be used in rmarkdown
+my_data[13,1]<-save_lastupdate
+my_data[14,1]<-save_new_case
+
 saveRDS(my_data, file = paste0(mypath,"french_polynesia_dengue.Rdata"))
 
 
@@ -481,7 +427,7 @@ web <- read_html(webpage[1]) %>% html_nodes("ul") %>% html_nodes("li") %>%  html
 date1 <- pdf_text(web[11])[1]
 date_slipt <- date1 %>% str_split("\r\n", simplify = TRUE) 
 date <- trimws(date_slipt[,5])
-paste("Last update: ", date)
+save_lastupdate<-paste("Last update: ", date)
 month1 <- strsplit(date, " ")
 month2 <- month1[[1]][3]
 df_results <- extract_tables(web[11], pages = 3)
@@ -504,12 +450,14 @@ my_data <- read_excel(paste0(mypath,"Marshall_Islands_dengue.xlsx"))
 
 my_data_date <- my_data
 new_cases <- ifelse(date != my_data_date[13,4], total, 0)
-paste("New Cases: ", new_cases)
+save_new_case<-paste("New Cases: ", new_cases)
 my_data <- my_data[-c(13), ] 
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
 
-means <- data.frame(ID=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
+means <- data.frame(Month=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
+#convert month to characters from factors
+means$Month <- as.character(means$Month)
 means <- means %>% mutate(Above = means$Means*1.25, Below = means$Means*0.75)
 my_data <- as.data.frame(my_data)
 
@@ -543,17 +491,25 @@ my_data <- my_data[-c(13), ]
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
 
-my_data$eigthten_mean <- ifelse(my_data$`2018` > means$Above, 2,
-                                ifelse(my_data$`2018` < means$Below, 0,
+#merging my_data with means
+
+my_data<- inner_join(my_data,means,by="Month")
+
+my_data$eigthten_mean <- ifelse(my_data$`2018` > my_data$Above, 2,
+                                ifelse(my_data$`2018` < my_data$Below, 0,
                                        1))
-my_data$nineten_mean <- ifelse(my_data$`2019` > means$Above, 2,
-                               ifelse(my_data$`2019` < means$Below, 0,
+my_data$nineten_mean <- ifelse(my_data$`2019` > my_data$Above, 2,
+                               ifelse(my_data$`2019` < my_data$Below, 0,
                                       1))
-my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
-                              ifelse(my_data$`2020` < means$Below, 0,
+my_data$twente_mean <- ifelse(my_data$`2020` > my_data$Above, 2,
+                              ifelse(my_data$`2020` < my_data$Below, 0,
                                      1))
 
 #save the processed data
+my_data<- dplyr::select(my_data,-c(Means,Above,Below))
+#last update date and new cases number into the last two rows. This will be used in rmarkdown
+my_data[13,1]<-save_lastupdate
+my_data[14,1]<-save_new_case
 saveRDS(my_data, file = paste0(mypath,"marshall_dengue.Rdata"))
 
 
@@ -568,7 +524,7 @@ site <- "http://idengue.arsm.gov.my/"
 date <- site %>% read_html() %>% html_nodes(xpath='//*[@id="txtsya2"]/center[1]')
 Date <- date %>% html_nodes("tr")  %>% html_nodes("th") %>% html_nodes("span")
 date <- Date[3] %>% html_text %>% trimws()
-paste("Last update: ", date)
+save_lastupdate<-paste("Last update: ", date)
 month1 <- strsplit(date, " ")
 month2 <- month1[[1]][2]
 
@@ -586,10 +542,11 @@ total2 <- gsub(",","",total2)
 total2 <- as.numeric(total2)
 total <- total2 - total1
 new_cases <- ifelse(date != my_data_date[13,6], total, 0)
-paste("New Cases: ", new_cases)
+save_new_case<-paste("New Cases: ", new_cases)
 
 
-means <- data.frame(ID=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
+means <- data.frame(Month=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
+means$Month <- as.character(means$Month)
 means <- means %>% mutate(Above = means$Means*1.25, Below = means$Means*0.75)
 
 
@@ -620,24 +577,31 @@ my_data <- my_data[-c(13), ]
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2016" =  "X2016", "2017" =  "X2017", "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
 
+#merge my_data and means dataset
+my_data<- inner_join(my_data,means,by="Month")
 
-my_data$sixten_mean <- ifelse(my_data$`2016` > means$Above, 2,
-                              ifelse(my_data$`2016` < means$Below, 0,
+my_data$sixten_mean <- ifelse(my_data$`2016` > my_data$Above, 2,
+                              ifelse(my_data$`2016` < my_data$Below, 0,
                                      1))
-my_data$seventen_mean <- ifelse(my_data$`2017` > means$Above, 2,
-                                ifelse(my_data$`2017` < means$Below, 0,
+my_data$seventen_mean <- ifelse(my_data$`2017` > my_data$Above, 2,
+                                ifelse(my_data$`2017` < my_data$Below, 0,
                                        1))
-my_data$eigthten_mean <- ifelse(my_data$`2018` > means$Above, 2,
-                                ifelse(my_data$`2018` < means$Below, 0,
+my_data$eigthten_mean <- ifelse(my_data$`2018` > my_data$Above, 2,
+                                ifelse(my_data$`2018` < my_data$Below, 0,
                                        1))
-my_data$nineten_mean <- ifelse(my_data$`2019` > means$Above, 2,
-                               ifelse(my_data$`2019` < means$Below, 0,
+my_data$nineten_mean <- ifelse(my_data$`2019` > my_data$Above, 2,
+                               ifelse(my_data$`2019` < my_data$Below, 0,
                                       1))
-my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
-                              ifelse(my_data$`2020` < means$Below, 0,
+my_data$twente_mean <- ifelse(my_data$`2020` > my_data$Above, 2,
+                              ifelse(my_data$`2020` < my_data$Below, 0,
                                      1))
 
 #save the processed data
+my_data<- dplyr::select(my_data,-c(Means,Above,Below))
+#last update date and new cases number into the last two rows. This will be used in rmarkdown
+my_data[13,1]<-save_lastupdate
+my_data[14,1]<-save_new_case
+
 saveRDS(my_data, file = paste0(mypath,"Malaysia_dengue.Rdata"))
 
 
@@ -651,138 +615,30 @@ url <- 'http://polioeradication.org/polio-today/polio-now/this-week/'
 webpage <- read_html(url)
 title_html <- html_nodes(webpage,'h2')
 date <- html_text(title_html[1])
-paste("Last update: ", date)
+save_lastupdate<-paste("Last update: ", date)
 month1 <- strsplit(date, " ")
 month2 <- month1[[1]][7]
 info_html <- html_nodes(webpage,'.panel-collapse')
 Afghanistan <-  html_text(info_html[1])
 Afghanistan <-toString(Afghanistan)
 afghanistan_cases <- gsub( " .*$", "", Afghanistan )
-word_to_number <- function(x){
-  # Remove punctuation and 'and'
-  x <- tolower(gsub("([[:punct:]]| and )", " ", x))
-  # separate into distinct words
-  x <- trimws(unlist(strsplit(x, "\\s+")))
-  
-  # verify that all words are found in the reference vectors.
-  if (!(all(x %in% names(c(word_to_number_reference, magnitude_reference)))))
-    stop("Text found that is not compatible with conversion. Check your spelling?")
-  
-  # translate words to the numeric reference
-  num <- c(word_to_number_reference, magnitude_reference)[x]
-  
-  # Identify positions with a magnitude indicator
-  magnitude_at <- 
-    which(names(num) %in% 
-            c("quadrillion", "trillion", "billion",
-              "million", "thousand"))
-  
-  # Create an indexing vector for each magnitude class of the number
-  magnitude_index <- 
-    cut(seq_along(num), 
-        breaks = unique(c(0, magnitude_at, length(num))))
-  
-  # Make a list with each magnitude
-  num_component <- 
-    lapply(unique(magnitude_index),
-           FUN = function(i) num[magnitude_index == i])
-  
-  # Transate each component
-  num_component <- 
-    vapply(num_component,
-           FUN = word_to_number_translate_hundred,
-           FUN.VALUE = numeric(1))
-  
-  # Add the components together
-  num <- sum(num_component)
-  
-  if (is.na(num))
-    warning(sprintf("Unable to translate %s", x))
-  
-  num
-}
 
-word_to_number_translate_hundred <- function(n){
-  # set a magnitude multiplier for thousands and greater
-  if (tail(names(n), 1) %in% names(magnitude_reference)){
-    magnitude <- tail(n, 1)
-    n <- head(n, -1)
-  } else {
-    magnitude <- 1
-  }
-  
-  # if hundred appears anywhere but the second position or of the
-  # value preceding hundred is greater than 9, handle with care
-  # (for instance, 1200)
-  if ( ("hundred" %in% names(n) && which(names(n) == "hundred") != 2) ||
-       ("hundred" %in% names(n) && n[1] > 1) )
-  {
-    which_hundred <- which(names(n) == "hundred")
-    (sum(n[seq_along(n) < which_hundred]) * 100 + 
-        sum(n[seq_along(n) > which_hundred])) * magnitude
-  } else {
-    op <- rep("+", length(n) - 1)
-    op[names(n)[-1] == "hundred"] <- "*"
-    op <- c(op, "")
-    eval(parse(text = paste(paste(n, op), collapse = " "))) * magnitude
-  }
-}
-
-
-
-word_to_number_reference <- 
-  c("zero" = 0,
-    "one" = 1,
-    "two" = 2,
-    "three" = 3,
-    "four" = 4,
-    "five" = 5,
-    "six" = 6,
-    "seven" = 7,
-    "eight" = 8,
-    "nine" = 9,
-    "ten" = 10,
-    "eleven" = 11,
-    "twelve" = 12,
-    "thirteen" = 13,
-    "fourteen" = 14,
-    "fifteen" = 15,
-    "sixteen" = 16,
-    "seventeen" = 17,
-    "eighteen" = 18,
-    "nineteen" = 19,
-    "twenty" = 20,
-    "thirty" = 30,
-    "forty" = 40,
-    "fifty" = 50,
-    "sixty" = 60,
-    "seventy" = 70,
-    "eighty" = 80,
-    "ninety" = 90,
-    "hundred" = 100)
-
-magnitude_reference <- 
-  c("thousand" = 1000,
-    "million" =  1e6,
-    "billion" =  1e9,
-    "trillion" = 1e12,
-    "quadrillion" = 1e15)
-
+#word_to_number function is defined in dependancies script
 total <- ifelse(afghanistan_cases == "No", 0, word_to_number(afghanistan_cases))
 
 my_data <- read_excel(paste0(mypath,"afghanistan_polio.xlsx"))
 
 my_data_date <- my_data
 new_cases <- ifelse(date != my_data_date[13,7], total, 0)
-paste("New Cases: ", new_cases)
+save_new_case<-paste("New Cases: ", new_cases)
 my_data <- my_data[-c(13), ] 
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2015" =  "X2015", "2016" =  "X2016", "2017" =  "X2017", "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
 
-means <- data.frame(ID=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
+means <- data.frame(Month=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
 means <- means %>% mutate(Above = means$Means*1.25, Below = means$Means*0.75)
 my_data <- as.data.frame(my_data)
-
+means$Month <- as.character(means$Month)
 
 my_data[1, '2020'] <- ifelse(date != my_data_date[13,7] & month2 == "January", my_data$`2020`[1]+total, my_data$`2020`[1]+0)
 my_data[2, '2020'] <- ifelse(date != my_data_date[13,7] & month2 == "February", my_data$`2020`[2]+total, my_data$`2020`[2]+0)
@@ -810,25 +666,31 @@ my_data <- my_data[-c(13), ]
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2015" =  "X2015", "2016" =  "X2016", "2017" =  "X2017", "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
 
-my_data$fiveten_mean <- ifelse(my_data$`2015` > means$Above, 2,
-                               ifelse(my_data$`2015` < means$Below, 0,
+#Merge my_data with means dataset
+my_data <- inner_join(my_data,means, by="Month")
+
+my_data$fiveten_mean <- ifelse(my_data$`2015` > my_data$Above, 2,
+                               ifelse(my_data$`2015` < my_data$Below, 0,
                                       1))
-my_data$sixten_mean <- ifelse(my_data$`2016` > means$Above, 2,
-                              ifelse(my_data$`2016` < means$Below, 0,
+my_data$sixten_mean <- ifelse(my_data$`2016` > my_data$Above, 2,
+                              ifelse(my_data$`2016` < my_data$Below, 0,
                                      1))
-my_data$seventen_mean <- ifelse(my_data$`2017` > means$Above, 2,
-                                ifelse(my_data$`2017` < means$Below, 0,
+my_data$seventen_mean <- ifelse(my_data$`2017` > my_data$Above, 2,
+                                ifelse(my_data$`2017` < my_data$Below, 0,
                                        1))
-my_data$eigthten_mean <- ifelse(my_data$`2018` > means$Above, 2,
-                                ifelse(my_data$`2018` < means$Below, 0,
+my_data$eigthten_mean <- ifelse(my_data$`2018` > my_data$Above, 2,
+                                ifelse(my_data$`2018` < my_data$Below, 0,
                                        1))
-my_data$nineten_mean <- ifelse(my_data$`2019` > means$Above, 2,
-                               ifelse(my_data$`2019` < means$Below, 0,
+my_data$nineten_mean <- ifelse(my_data$`2019` > my_data$Above, 2,
+                               ifelse(my_data$`2019` < my_data$Below, 0,
                                       1))
-my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
-                              ifelse(my_data$`2020` < means$Below, 0,
+my_data$twente_mean <- ifelse(my_data$`2020` > my_data$Above, 2,
+                              ifelse(my_data$`2020` < my_data$Below, 0,
                                      1))
 #save the processed data
+my_data<- dplyr::select(my_data,-c(Means,Above,Below))
+my_data[13,1]<-save_lastupdate
+my_data[14,1]<-save_new_case
 saveRDS(my_data, file =paste0(mypath,"afghanistan_polio.Rdata"))
 
 #' ----------------------------------------------------------------------------------------------
@@ -842,137 +704,28 @@ url <- 'http://polioeradication.org/polio-today/polio-now/this-week/'
 webpage <- read_html(url)
 title_html <- html_nodes(webpage,'h2')
 date <- html_text(title_html[1])
-paste("Last update: ", date)
+save_lastupdate<-paste("Last update: ", date)
 month1 <- strsplit(date, " ")
 month2 <- month1[[1]][7]
 info_html <- html_nodes(webpage,'.panel-collapse')
 Pakistan <-  html_text(info_html[2])
 pakistan_cases <- gsub( " .*$", "", Pakistan )
-word_to_number <- function(x){
-  # Remove punctuation and 'and'
-  x <- tolower(gsub("([[:punct:]]| and )", " ", x))
-  # separate into distinct words
-  x <- trimws(unlist(strsplit(x, "\\s+")))
-  
-  # verify that all words are found in the reference vectors.
-  if (!(all(x %in% names(c(word_to_number_reference, magnitude_reference)))))
-    stop("Text found that is not compatible with conversion. Check your spelling?")
-  
-  # translate words to the numeric reference
-  num <- c(word_to_number_reference, magnitude_reference)[x]
-  
-  # Identify positions with a magnitude indicator
-  magnitude_at <- 
-    which(names(num) %in% 
-            c("quadrillion", "trillion", "billion",
-              "million", "thousand"))
-  
-  # Create an indexing vector for each magnitude class of the number
-  magnitude_index <- 
-    cut(seq_along(num), 
-        breaks = unique(c(0, magnitude_at, length(num))))
-  
-  # Make a list with each magnitude
-  num_component <- 
-    lapply(unique(magnitude_index),
-           FUN = function(i) num[magnitude_index == i])
-  
-  # Transate each component
-  num_component <- 
-    vapply(num_component,
-           FUN = word_to_number_translate_hundred,
-           FUN.VALUE = numeric(1))
-  
-  # Add the components together
-  num <- sum(num_component)
-  
-  if (is.na(num))
-    warning(sprintf("Unable to translate %s", x))
-  
-  num
-}
-
-word_to_number_translate_hundred <- function(n){
-  # set a magnitude multiplier for thousands and greater
-  if (tail(names(n), 1) %in% names(magnitude_reference)){
-    magnitude <- tail(n, 1)
-    n <- head(n, -1)
-  } else {
-    magnitude <- 1
-  }
-  
-  # if hundred appears anywhere but the second position or of the
-  # value preceding hundred is greater than 9, handle with care
-  # (for instance, 1200)
-  if ( ("hundred" %in% names(n) && which(names(n) == "hundred") != 2) ||
-       ("hundred" %in% names(n) && n[1] > 1) )
-  {
-    which_hundred <- which(names(n) == "hundred")
-    (sum(n[seq_along(n) < which_hundred]) * 100 + 
-        sum(n[seq_along(n) > which_hundred])) * magnitude
-  } else {
-    op <- rep("+", length(n) - 1)
-    op[names(n)[-1] == "hundred"] <- "*"
-    op <- c(op, "")
-    eval(parse(text = paste(paste(n, op), collapse = " "))) * magnitude
-  }
-}
-
-
-
-word_to_number_reference <- 
-  c("zero" = 0,
-    "one" = 1,
-    "two" = 2,
-    "three" = 3,
-    "four" = 4,
-    "five" = 5,
-    "six" = 6,
-    "seven" = 7,
-    "eight" = 8,
-    "nine" = 9,
-    "ten" = 10,
-    "eleven" = 11,
-    "twelve" = 12,
-    "thirteen" = 13,
-    "fourteen" = 14,
-    "fifteen" = 15,
-    "sixteen" = 16,
-    "seventeen" = 17,
-    "eighteen" = 18,
-    "nineteen" = 19,
-    "twenty" = 20,
-    "thirty" = 30,
-    "forty" = 40,
-    "fifty" = 50,
-    "sixty" = 60,
-    "seventy" = 70,
-    "eighty" = 80,
-    "ninety" = 90,
-    "hundred" = 100)
-
-magnitude_reference <- 
-  c("thousand" = 1000,
-    "million" =  1e6,
-    "billion" =  1e9,
-    "trillion" = 1e12,
-    "quadrillion" = 1e15)
-
+#word_to_number function is defined in dependancies script
 total <- ifelse(pakistan_cases == "No", 0, word_to_number(pakistan_cases))
 
 my_data <- read_excel(paste0(mypath,"pakistan_polio.xlsx"))
 
 my_data_date <- my_data
 new_cases <- ifelse(date != my_data_date[13,7], total, 0)
-paste("New Cases: ", new_cases)
+save_new_case<-paste("New Cases: ", new_cases)
 my_data <- my_data[-c(13), ] 
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2015" =  "X2015", "2016" =  "X2016", "2017" =  "X2017", "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
 
-means <- data.frame(ID=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
+means <- data.frame(Month=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
 means <- means %>% mutate(Above = means$Means*1.25, Below = means$Means*0.75)
 my_data <- as.data.frame(my_data)
-
+means$Month <- as.character(means$Month)
 
 my_data[1, '2020'] <- ifelse(date != my_data_date[13,7] & month2 == "January", my_data$`2020`[1]+total, my_data$`2020`[1]+0)
 my_data[2, '2020'] <- ifelse(date != my_data_date[13,7] & month2 == "February", my_data$`2020`[2]+total, my_data$`2020`[2]+0)
@@ -1000,25 +753,31 @@ my_data <- my_data[-c(13), ]
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2015" =  "X2015", "2016" =  "X2016", "2017" =  "X2017", "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
 
-my_data$fiveten_mean <- ifelse(my_data$`2015` > means$Above, 2,
-                               ifelse(my_data$`2015` < means$Below, 0,
+#merge my_data together with means dataset
+my_data<- inner_join(my_data,means, by="Month")
+my_data$fiveten_mean <- ifelse(my_data$`2015` > my_data$Above, 2,
+                               ifelse(my_data$`2015` < my_data$Below, 0,
                                       1))
-my_data$sixten_mean <- ifelse(my_data$`2016` > means$Above, 2,
-                              ifelse(my_data$`2016` < means$Below, 0,
+my_data$sixten_mean <- ifelse(my_data$`2016` > my_data$Above, 2,
+                              ifelse(my_data$`2016` < my_data$Below, 0,
                                      1))
-my_data$seventen_mean <- ifelse(my_data$`2017` > means$Above, 2,
-                                ifelse(my_data$`2017` < means$Below, 0,
+my_data$seventen_mean <- ifelse(my_data$`2017` > my_data$Above, 2,
+                                ifelse(my_data$`2017` < my_data$Below, 0,
                                        1))
-my_data$eigthten_mean <- ifelse(my_data$`2018` > means$Above, 2,
-                                ifelse(my_data$`2018` < means$Below, 0,
+my_data$eigthten_mean <- ifelse(my_data$`2018` > my_data$Above, 2,
+                                ifelse(my_data$`2018` < my_data$Below, 0,
                                        1))
-my_data$nineten_mean <- ifelse(my_data$`2019` > means$Above, 2,
-                               ifelse(my_data$`2019` < means$Below, 0,
+my_data$nineten_mean <- ifelse(my_data$`2019` > my_data$Above, 2,
+                               ifelse(my_data$`2019` < my_data$Below, 0,
                                       1))
-my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
-                              ifelse(my_data$`2020` < means$Below, 0,
+my_data$twente_mean <- ifelse(my_data$`2020` > my_data$Above, 2,
+                              ifelse(my_data$`2020` < my_data$Below, 0,
                                      1))
 #save the processed data
+my_data<- dplyr::select(my_data,-c(Means,Above,Below))
+#last update date and new cases number into the last two rows. This will be used in rmarkdown
+my_data[13,1]<-save_lastupdate
+my_data[14,1]<-save_new_case
 saveRDS(my_data, file = paste0(mypath,"pakistan_polio.Rdata"))
 
 #' ----------------------------------------------------------------------------------------------
@@ -1034,7 +793,7 @@ web <- paste("http://www.searo.who.int/", webpage[16],sep="")
 date1 <- pdf_text(web)[1]
 date_slipt <- date1 %>% str_split("\r\n", simplify = TRUE) 
 date <- trimws(date_slipt[2])
-paste("Last update: ", date)
+save_lastupdate<-paste("Last update: ", date)
 month1 <- gsub('[[:digit:]]+', '', date)
 month1.1 <- strsplit(month1, " ")
 month2 <- month2 <- ifelse(length(month1.1[[1]]) >= 8, month1.1[[1]][7],
@@ -1048,15 +807,14 @@ my_data <- read_excel(paste0(mypath,"Bangladesh_Measles.xlsx"))
 
 my_data_date <- my_data
 new_cases <- ifelse(date != my_data_date[13,4], total, 0)
-paste("New Cases: ", new_cases)
+save_new_case<-paste("New Cases: ", new_cases)
 my_data <- my_data[-c(13), ] 
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
 
-means <- data.frame(ID=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
+means <- data.frame(Month=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
+means$Month <- as.character(means$Month)
 means <- means %>% mutate(Above = means$Means*1.25, Below = means$Means*0.75)
-
-
 
 my_data[1, '2020'] <- ifelse(date != my_data_date[13,4] & month2 == "January", my_data$`2020`[1]+total, my_data$`2020`[1]+0)
 my_data[2, '2020'] <- ifelse(date != my_data_date[13,4] & month2 == "February", my_data$`2020`[2]+total, my_data$`2020`[2]+0)
@@ -1085,17 +843,23 @@ my_data <- my_data[-c(13), ]
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
 
+#merge my_data with means dataset
+my_data <- inner_join(my_data,means,by="Month")
 
-my_data$eigthten_mean <- ifelse(my_data$`2018` > means$Above, 2,
-                                ifelse(my_data$`2018` < means$Below, 0,
+my_data$eigthten_mean <- ifelse(my_data$`2018` > my_data$Above, 2,
+                                ifelse(my_data$`2018` < my_data$Below, 0,
                                        1))
-my_data$nineten_mean <- ifelse(my_data$`2019` > means$Above, 2,
-                               ifelse(my_data$`2019` < means$Below, 0,
+my_data$nineten_mean <- ifelse(my_data$`2019` > my_data$Above, 2,
+                               ifelse(my_data$`2019` < my_data$Below, 0,
                                       1))
-my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
-                              ifelse(my_data$`2020` < means$Below, 0,
+my_data$twente_mean <- ifelse(my_data$`2020` > my_data$Above, 2,
+                              ifelse(my_data$`2020` < my_data$Below, 0,
                                      1))
 #save the processed data
+my_data<- dplyr::select(my_data,-c(Means,Above,Below))
+#last update date and new cases number into the last two rows. This will be used in rmarkdown
+my_data[13,1]<-save_lastupdate
+my_data[14,1]<-save_new_case
 saveRDS(my_data, file = paste0(mypath,"Bangladesh_Measles.Rdata"))
 
 #' ----------------------------------------------------------------------------------------------
@@ -1110,13 +874,13 @@ web <- paste("http://www.searo.who.int/", webpage[16],sep="")
 date1 <- pdf_text(web)[1]
 date_slipt <- date1 %>% str_split("\r\n", simplify = TRUE) 
 date <- trimws(date_slipt[2])
-paste("Last update: ", date)
+save_lastupdate<-paste("Last update: ", date)
 month1 <- gsub('[[:digit:]]+', '', date)
 month1.1 <- strsplit(month1, " ")
 month2 <- month2 <- ifelse(length(month1.1[[1]]) >= 8, month1.1[[1]][7],
                            ifelse(length(month1.1[[1]]) == 5, month1.1[[1]][4],
                                   month1.1[[1]][6]))
-data1 <- pdf_text(web)[8]
+data1 <- pdf_text(web) %>% grep('Diarrhoeal Disease', ., value = T)
 data2 <- str_match(data1, "A total (.*?) cases")
 total <- gsub(" ", "", data2[,2], fixed = TRUE) %>% as.numeric()
 
@@ -1125,12 +889,13 @@ my_data <- read_excel(paste0(mypath,"Bangladesh_Diarrhea.xlsx"))
 
 my_data_date <- my_data
 new_cases <- ifelse(date != my_data_date[13,4], total, 0)
-paste("New Cases: ", new_cases)
+save_new_case<-paste("New Cases: ", new_cases)
 my_data <- my_data[-c(13), ] 
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
 
-means <- data.frame(ID=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
+means <- data.frame(Month=my_data[,1], Means=rowMeans(my_data[,-1], na.rm=TRUE))
+means$Month <- as.character(means$Month)
 means <- means %>% mutate(Above = means$Means*1.25, Below = means$Means*0.75)
 my_data <- as.data.frame(my_data)
 
@@ -1162,34 +927,40 @@ write.xlsx(data_date_bangladesh_diarrhea,paste0(mypath,"Bangladesh_Diarrhea.xlsx
 my_data <- my_data[-c(13), ]
 my_data <- transform(my_data, `2020` = as.numeric(`2020`))
 my_data <- my_data %>% rename( "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
+#merge my_data together with means dataset
+my_data <- inner_join(my_data,means, by="Month")
 
-
-my_data$eigthten_mean <- ifelse(my_data$`2018` > means$Above, 2,
-                                ifelse(my_data$`2018` < means$Below, 0,
+my_data$eigthten_mean <- ifelse(my_data$`2018` > my_data$Above, 2,
+                                ifelse(my_data$`2018` < my_data$Below, 0,
                                        1))
-my_data$nineten_mean <- ifelse(my_data$`2019` > means$Above, 2,
-                               ifelse(my_data$`2019` < means$Below, 0,
+my_data$nineten_mean <- ifelse(my_data$`2019` > my_data$Above, 2,
+                               ifelse(my_data$`2019` < my_data$Below, 0,
                                       1))
-my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
-                              ifelse(my_data$`2020` < means$Below, 0,
+my_data$twente_mean <- ifelse(my_data$`2020` > my_data$Above, 2,
+                              ifelse(my_data$`2020` < my_data$Below, 0,
                                      1))
 #save the processed data
+my_data<- dplyr::select(my_data,-c(Means,Above,Below))
+#last update date and new cases number into the last two rows. This will be used in rmarkdown
+my_data[13,1]<-save_lastupdate
+my_data[14,1]<-save_new_case
 saveRDS(my_data, file = paste0(mypath,"Bangladesh_Diarrhea.Rdata"))
 
-#' ----------------------------------------------------------------------------------------------
-#' scrapping Drought Situation Report- Sri Lanka
-#' 
-#' 
-#' ----------------------------------------------------------------------------------------------
-#'
+#' #' ----------------------------------------------------------------------------------------------
+#' #' scrapping Drought Situation Report- Sri Lanka
+#' #' 
+#' #' 
+#' #' ----------------------------------------------------------------------------------------------
+#' #'
 
 site <- "http://www.dmc.gov.lk/index.php?option=com_dmcreports&view=reports&Itemid=273&report_type_id=1&lang=en"
 date <- read_html(site) %>% html_nodes("td")
-paste("Last update: ", gsub("\\D+\\D+", "\\1",  date[10]))
+save_lastupdate<-paste("Last update: ", gsub("\\D+\\D+", "\\1",  date[10]))
 
 
 
 my_data <- read_excel(paste0(mypath,"sri_lanka_drought.xlsx"))
+
 
 my_data <- as.data.frame(my_data)
 
@@ -1249,12 +1020,16 @@ my_data[16, '2020'] <- 297039
 
 save_data_srilanka_drought <- my_data
 
-write.xlsx(save_data_srilanka_drought,paste0(mypath,"sri_lanka_drought.xlsx"), sheetName="Sheet1", 
-           col.names=TRUE, row.names=FALSE, append=FALSE)
-
 my_data$twente_mean <- ifelse(my_data$`2020` > 50000, 2,
                               ifelse(my_data$`2020` < 30000, 0,
                                      1))
-#save the processed data
+
+#'save the processed data
+#last update date and new cases number into the last two rows. This will be used in rmarkdown
+my_data$lastupdate[1]<-save_lastupdate
+
+
 saveRDS(my_data, file = paste0(mypath,"save_data_srilanka_drought.Rdata"))
+write.xlsx(save_data_srilanka_drought,paste0(mypath,"sri_lanka_drought.xlsx"), sheetName="Sheet1", 
+           col.names=TRUE, row.names=FALSE, append=FALSE)
 
