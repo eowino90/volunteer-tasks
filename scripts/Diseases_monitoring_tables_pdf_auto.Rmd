@@ -49,6 +49,8 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 #' 
 mypath<- "C:/Users/user/Documents/UN volunteer work/data/" #once this is set, please copy it over to Web_scrapping_and_data_cleaning.R script
 
+#Run first the dependancies and web_scrapping_and_data_cleaning scripts
+source("dependancies.R")
 source("Web_scrapping_and_data_cleaning.R")
 
 ```
@@ -56,24 +58,12 @@ source("Web_scrapping_and_data_cleaning.R")
 
 ```{r Dengue_Nepal, fig.width=7, fig.height=3,dev='png',screenshot.force = TRUE,cache = TRUE,echo=FALSE}
 save_data <- readRDS(file =paste0(mypath,"save_data_nepal_dengue.Rdata") )
-
-my_data <- save_data
-my_data <- transform(my_data, `2020` = as.numeric(`2020`))
-my_data <- my_data %>% rename("2017" =  "X2017", "2018" =  "X2018", "2019" =  "X2019", "2020" =  "X2020")
-
-my_data$seventen_mean <- ifelse(my_data$`2017` > means$Above, 2,
-                                ifelse(my_data$`2017` < means$Below, 0,
-                                       1))
-my_data$eigthten_mean <- ifelse(my_data$`2018` > means$Above, 2,
-                                ifelse(my_data$`2018` < means$Below, 0,
-                                       1))
-my_data$nineten_mean <- ifelse(my_data$`2019` > means$Above, 2,
-                               ifelse(my_data$`2019` < means$Below, 0,
-                                      1))
-my_data$twente_mean <- ifelse(my_data$`2020` > means$Above, 2,
-                              ifelse(my_data$`2020` < means$Below, 0,
-                                     1))
-
+#extract last updated and new cases in the last two rows then display
+save_data[13,1]
+save_data[14,1]
+#remove the last two rows
+save_data<-save_data[1:12,]
+my_data<-save_data
 
 DT::datatable(
   my_data,
@@ -99,8 +89,12 @@ save_data$Month <-factor(save_data$Month,
                          levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 
-meltdf <- melt(save_data,id="Month")
-ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()
+meltdf <- melt(dplyr::select(save_data,-c(seventen_mean,eigthten_mean,nineten_mean,twente_mean)),id="Month")
+
+ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line() +
+theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),     axis.line = element_line(colour = "black"))+ 
+ggtitle("Monthly Distribution of Dengue cases split by Year") + labs(y= "Dengue Cases",x="Month")+ 
+guides(colour=guide_legend(title="Year"))
 
 ```
 
@@ -113,6 +107,12 @@ Source: Government of Nepal, Ministry of Health and Population, Department of He
 ```{r Dengue_Srilanka, fig.width=7, fig.height=3, dev='png',screenshot.force = TRUE,cache = TRUE, echo=FALSE}
 #readRDS data from processing files
 my_data <- readRDS(file = paste0(mypath,"sri_lanka_dengue.Rdata"))
+
+#extract last updated and new cases in the last two rows then display
+my_data[13,1]
+my_data[14,1]
+#remove the last two rows
+my_data<-my_data[1:12,]
 
 DT::datatable(
   my_data,
@@ -155,7 +155,8 @@ DT::datatable(
               backgroundColor = styleEqual(levels = c(0,1,2), values = c("#008000","#FFA500","#F00"))) %>%
   formatStyle(columns = "2020",
               valueColumns = "twente_mean",
-              backgroundColor = styleEqual(levels = c(0,1,2), values = c("#008000","#FFA500","#F00")))
+              backgroundColor = styleEqual(levels = c(0,1,2), values = c("#008000","#FFA500","#F00"))) 
+
 
 #readRDS ggplot data from web scrapping and data cleaning file
 save_data <- readRDS(file = paste0(mypath,"sri_lanka_dengue_ggplot.Rdata"))
@@ -165,7 +166,10 @@ save_data$Month <-factor(save_data$Month,
                                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 
 meltdf <- melt(save_data,id="Month")
-ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()
+ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()+
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),     axis.line = element_line(colour = "black"))+ 
+ggtitle("Monthly Distribution of Dengue cases split by Year") + labs(y= "Dengue Cases",x="Month")+ 
+guides(colour=guide_legend(title="Year"))
 
 
 
@@ -183,6 +187,11 @@ Source: Epidemiology Unit of Ministry of Health of Sri Lanka
 ```{r Dengue_Fiji, fig.width=7, fig.height=3,dev='png',screenshot.force = TRUE,cache = TRUE, echo=FALSE}
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"save_data_fiji_dengue.Rdata"))
+
+my_data[13,1]
+my_data[14,1]
+#remove the last two rows
+my_data<-my_data[1:12,]
 
 DT::datatable(
   my_data,
@@ -210,7 +219,10 @@ save_data$Month <-factor(save_data$Month,
                                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 
 meltdf <- melt(save_data,id="Month")
-ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()
+ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()+
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),     axis.line = element_line(colour = "black"))+ 
+ggtitle("Monthly Distribution of Dengue cases split by Year") + labs(y= "Dengue Cases",x="Month")+ 
+guides(colour=guide_legend(title="Year"))
 
 
 
@@ -227,6 +239,11 @@ Source: Pacific Syndromic Surveillance System Weekly Bulletin - WHO
 
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"french_polynesia_dengue.Rdata"))
+
+my_data[13,1]
+my_data[14,1]
+#remove the last two rows
+my_data<-my_data[1:12,]
 
 DT::datatable(
   my_data,
@@ -253,7 +270,10 @@ save_data$Month <-factor(save_data$Month,
                                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 
 meltdf <- melt(save_data,id="Month")
-ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()
+ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()+
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),     axis.line = element_line(colour = "black"))+ 
+ggtitle("Monthly Distribution of Dengue cases split by Year") + labs(y= "Dengue Cases",x="Month")+ 
+guides(colour=guide_legend(title="Year"))
 
 
 ```
@@ -267,7 +287,10 @@ Source: Pacific Syndromic Surveillance System Weekly Bulletin - WHO
 ```{r Dengue_Marshall_Islands, fig.width=7,fig.height=3,dev='png',screenshot.force = TRUE,cache = TRUE,echo=FALSE}
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"marshall_dengue.Rdata"))
-
+my_data[13,1]
+my_data[14,1]
+#remove the last two rows
+my_data<-my_data[1:12,]
 DT::datatable(
   my_data,
   rownames = FALSE,
@@ -293,7 +316,10 @@ save_data$Month <-factor(save_data$Month,
                                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 
 meltdf <- melt(save_data,id="Month")
-ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()
+ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()+
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),     axis.line = element_line(colour = "black"))+ 
+ggtitle("Monthly Distribution of Dengue cases split by Year") + labs(y= "Dengue Cases",x="Month")+ 
+guides(colour=guide_legend(title="Year"))
 
 
 
@@ -308,6 +334,10 @@ Source: Pacific Syndromic Surveillance System Weekly Bulletin - WHO
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"Malaysia_dengue.Rdata"))
 
+my_data[13,1]
+my_data[14,1]
+#remove the last two rows
+my_data<-my_data[1:12,]
 
 DT::datatable(
   my_data,
@@ -339,7 +369,10 @@ save_data$Month <-factor(save_data$Month,
                                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 
 meltdf <- melt(save_data,id="Month")
-ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()
+ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()+
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),     axis.line = element_line(colour = "black"))+ 
+ggtitle("Monthly Distribution of Dengue cases split by Year") + labs(y= "Dengue Cases",x="Month")+ 
+guides(colour=guide_legend(title="Year"))
 
 
 
@@ -356,6 +389,10 @@ Source: iDengue untuk komuniti - The Government of Malaysia
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"afghanistan_polio.Rdata"))
 
+my_data[13,1]
+my_data[14,1]
+#remove the last two rows
+my_data<-my_data[1:12,]
 
 DT::datatable(
   my_data,
@@ -391,7 +428,10 @@ save_data$Month <-factor(save_data$Month,
                                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 
 meltdf <- melt(save_data,id="Month")
-ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()
+ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()+
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),     axis.line = element_line(colour = "black"))+ 
+ggtitle("Monthly Distribution of Polio cases split by Year") + labs(y= "Polio Cases",x="Month")+ 
+guides(colour=guide_legend(title="Year"))
 
 
 ```
@@ -406,6 +446,11 @@ Source: Polio Global Eradication Initiative
 
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"pakistan_polio.Rdata"))
+
+my_data[13,1]
+my_data[14,1]
+#remove the last two rows
+my_data<-my_data[1:12,]
 
 DT::datatable(
   my_data,
@@ -441,7 +486,10 @@ save_data$Month <-factor(save_data$Month,
                                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 
 meltdf <- melt(save_data,id="Month")
-ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()
+ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()+
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),     axis.line = element_line(colour = "black"))+ 
+ggtitle("Monthly Distribution of Polio cases split by Year") + labs(y= "Polio Cases",x="Month")+ 
+guides(colour=guide_legend(title="Year"))
 
 
 ```
@@ -456,6 +504,11 @@ Source: Polio Global Eradication Initiative
 
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"Bangladesh_Measles.Rdata"))
+
+my_data[13,1]
+my_data[14,1]
+#remove the last two rows
+my_data<-my_data[1:12,]
 
 DT::datatable(
   my_data,
@@ -482,7 +535,10 @@ save_data$Month <-factor(save_data$Month,
                                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 
 meltdf <- melt(save_data,id="Month")
-ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()
+ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()+
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),     axis.line = element_line(colour = "black"))+ 
+ggtitle("Monthly Distribution of Measles cases split by Year") + labs(y= "Measles Cases",x="Month")+ 
+guides(colour=guide_legend(title="Year"))
 
 
 
@@ -498,7 +554,10 @@ Source: Epidemiological Highlights - WHO
 
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"Bangladesh_Diarrhea.Rdata"))
-
+my_data[13,1]
+my_data[14,1]
+#remove the last two rows
+my_data<-my_data[1:12,]
 
 DT::datatable(
   my_data,
@@ -525,7 +584,10 @@ save_data$Month <-factor(save_data$Month,
                                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 
 meltdf <- melt(save_data,id="Month")
-ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()
+ggplot(meltdf,aes(x=Month,y=value,colour=variable,group=variable)) + geom_line()+
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),     axis.line = element_line(colour = "black"))+ 
+ggtitle("Monthly Distribution of Diarrhea cases split by Year") + labs(y= "Diarrhea Cases",x="Month")+ 
+guides(colour=guide_legend(title="Year"))
 
 
 ```
@@ -542,9 +604,12 @@ Source: Disaster Management Centre for Safer Communities & Sustainable Developme
 
 ```{r Drought_SriLanka, fig.width=7, fig.height=3,dev='png',screenshot.force = TRUE,cache = TRUE,  echo=FALSE}
 
-
 #readRDS processed data from sourced file
 my_data<- readRDS(file = paste0(mypath,"save_data_srilanka_drought.Rdata"))
+my_data$lastupdate[1]
+
+#remove the lastupdate column
+my_data$lastupdate<-NULL
 
 DT::datatable(
   my_data,
